@@ -1,65 +1,91 @@
-package com.example.demo.controller;
+package com.mycompany.myapp.web.rest;
 
-import com.example.demo.modal.Course;
-import com.example.demo.modal.dto.CourseDto;
-import com.example.demo.service.CourseService;
+import com.mycompany.myapp.domain.dto.CourseDto;
+import com.mycompany.myapp.domain.dto.CourseWithTNDto;
+import com.mycompany.myapp.service.CourseService;
+import io.swagger.annotations.Api;
+import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
-// single function interface
 @RestController
 @RequestMapping
+@Api(value="Course Service Controller", description = "Controller for find couses information")
 public class CourseController {
-    @Autowired // IOC
-    CourseService courseService; // Singleton
+    @Autowired
+    private CourseService courseService;
 
-    @GetMapping(path = "/", produces = "application/json")
-    public HttpEntity findAllCourses(){
-        List<Course> allCourses = courseService.findAllCourses();
+    @GetMapping(path = "/api/course/findAllCourses", produces = "application/json")
+    public HttpEntity<List<CourseDto>> findAllCourses(){
+        
+        List<CourseDto> allCourses = courseService.findAllCourses();
 
-        return new ResponseEntity<>(allCourses,HttpStatus.OK);
+        return new ResponseEntity<>(allCourses, HttpStatus.OK);
     }
 
-    // @GetMapping(path = "/look-up/{inputString}", produces = "application/json")
-    // public HttpEntity<Course> searchCourse(@PathVariable("inputString") String inputString) {
-    //     List<Course> findedCourse = courseService.searchByCourseName(inputString);
+    @GetMapping(path = "/api/course/findAllCoursesDto", produces = "application/json")
+    public HttpEntity<List<CourseDto>> findAllCoursesDto(){
+        List<CourseDto> allCourses = courseService.findAllCoursesDtoFromDB();
 
-    //     return new ResponseEntity(findedCourse, HttpStatus.OK);
-    // }
+        return new ResponseEntity<>(allCourses, HttpStatus.OK);
+    }
 
-    // @PostMapping(path = "/add", produces = "application/json")
-    // public HttpEntity<Course> addCourse(@RequestBody Course newCourse) {
-    //     List<Course> addedCourse = courseService.addCourse(newCourse);
-    //     List<Course> allCourses = courseService.findAllCourses();
+    @PostMapping(path = "/api/course/addCourse", produces = "application/json")
+    public HttpEntity<List<CourseDto>> addCourseDto(@RequestBody @NotNull CourseDto course){
+        courseService.addCourseDtoFromDB(courseName);
+        return HttpStatus.OK;
+    }
 
-    //     return new ResponseEntity(allCourses, HttpStatus.OK);
+    @GetMapping(path = "/api/course/findAllCoursesWithTNDto", produces = "application/json")
+    public HttpEntity<List<CourseWithTNDto>> findAllCoursesWithTNDto(){
+        List<CourseWithTNDto> allCourses = courseService.findAllCoursesDtoWithTeacherNameFromDB();
 
-    // }
+        return new ResponseEntity<>(allCourses, HttpStatus.OK);
+    }
 
-    // @PutMapping(path = "/update/{inputString}", produces = "application/json")
-    // public HttpEntity<Course> updateCourse(@PathVariable("inputString") String inputString, @RequestBody Course updateCourse) {
-    //     List<Course> updatedCourse = courseService.updateCourse(inputString, updateCourse);
+    @PostMapping(path = "/api/course/registerCourse/{courseName}", produces = "application/json")
+    public HttpStatus registerCourse(@PathVariable String courseName) {
+        try {
+            courseService.registerCourse(courseName);
+            return HttpStatus.OK;
+        } catch (Exception e) {
+            return HttpStatus.UNPROCESSABLE_ENTITY;
+        }
+    }
 
-    //     return new ResponseEntity(updatedCourse, HttpStatus.OK);
-    // }
+    @PostMapping(path = "/api/course/addCourse", produces = "application/json")
+    public HttpStatus addCourse(@RequestBody @NotNull CourseDto course) {
+        try {
+            courseService.addCourse(course);
+            return HttpStatus.OK;
+        } catch (Exception e) {
+            return HttpStatus.BAD_REQUEST;
+        }
+    }
 
-    // @DeleteMapping(path = "/delete/{inputString}", produces = "application/json")
-    // public HttpEntity<Course> deleteCourse(@PathVariable("inputString") String inputString) {
-    //     List<Course> deletedCourse = courseService.deleteByCourseName(inputString);
+    @PutMapping(path = "/api/course/updateCourse", produces = "application/json")
+    public HttpStatus updateCourse(@RequestBody @NotNull CourseDto course) {
+        try {
+            courseService.updateCourse(course);
+            return HttpStatus.OK;
+        } catch (Exception e) {
+            return HttpStatus.BAD_REQUEST;
+        }
+    }
 
-    //     return new ResponseEntity(deletedCourse, HttpStatus.OK);
-    // }
+    @DeleteMapping(path = "/api/course/deleteCourse/{courseName}", produces = "application/js")
+    public HttpStatus deleteCourse(@NotNull @PathVariable("courseName") String courseName) {
+        try {
+            courseService.deleteCourse(courseName);
+            return HttpStatus.OK;
+        } catch (Exception e) {
+            return HttpStatus.BAD_REQUEST;
+        }
+    }
 }
